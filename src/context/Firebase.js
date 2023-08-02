@@ -1,6 +1,6 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 
 
 const FirebaseContext = createContext(null);
@@ -19,16 +19,40 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
 
+const provider = new GoogleAuthProvider();
 
 export const useFirebase = () => useContext(FirebaseContext);
 
 export const FirebaseProvider = (props) => {
 
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        onAuthStateChanged(firebaseAuth, (user) => {
+            if(user){
+                setUser(user)
+            }
+            else{
+                setUser(null);
+            }
+        })
+    }, [])
+
     const singUpUserWithEmailAndPassword = (email, password) => {
         return createUserWithEmailAndPassword(firebaseAuth, email, password).then((value) => alert("User Created")).catch((error) => console.log("Error", error));
     }
 
+    const signInUserWithEmailAndPassword = (email, password) => {
+        return signInWithEmailAndPassword(firebaseAuth, email, password).then((value) => console.log("User Log In Values", value)).catch((error) => console.log(error));
+    }
+
+    const signInWithGoogle = () => {
+        return signInWithPopup(firebaseAuth, provider).then((result) => console.log(result)).catch((error) => console.log(error));
+    }
+
+    const isLoggedIn = user ? true : false;
+
     return (
-        <FirebaseContext.Provider value={{ singUpUserWithEmailAndPassword }}>{props.children}</FirebaseContext.Provider>
+        <FirebaseContext.Provider value={{ singUpUserWithEmailAndPassword, signInUserWithEmailAndPassword, signInWithGoogle, isLoggedIn }}>{props.children}</FirebaseContext.Provider>
     )
 }
