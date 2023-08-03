@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirestore, collection, addDoc, getDocs  } from 'firebase/firestore';
 
 const FirebaseContext = createContext(null);
 
@@ -16,15 +17,16 @@ const firebaseConfig = {
     appId: "1:772843975710:web:f1ab0625104f8044dd6a0f"
 };
 
+export const useFirebase = () => useContext(FirebaseContext);
+
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
+const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 const provider = new GoogleAuthProvider();
 
-export const useFirebase = () => useContext(FirebaseContext);
-
 export const FirebaseProvider = (props) => {
-
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -50,9 +52,30 @@ export const FirebaseProvider = (props) => {
         return signInWithPopup(firebaseAuth, provider).then((result) => console.log(result)).catch((error) => console.log(error));
     }
 
+    const handleCreateNewListing = async (name, isbn, price, cover) => {
+        const imageRef = ref(storage, `uploads/images/${Date.now()}-${cover.name}`)
+        const uploadResult = await uploadBytes(imageRef, cover);
+        return await addDoc(collection(firestore, 'books'), {
+            name,
+            desc,
+            isbn,
+            price,
+            imageURL: uploadResult.ref.fullPath,
+        })
+    }
+
+
+    const listAllBooks = () => {
+        return getDocs(collection(firestore, 'books'));
+    }
+
+    const getImageURL = (path) => {
+        return getDownloadURL(ref(storage, path));
+    }
+
     const isLoggedIn = user ? true : false;
 
     return (
-        <FirebaseContext.Provider value={{ singUpUserWithEmailAndPassword, signInUserWithEmailAndPassword, signInWithGoogle, isLoggedIn }}>{props.children}</FirebaseContext.Provider>
+        <FirebaseContext.Provider value={{ singUpUserWithEmailAndPassword, signInUserWithEmailAndPassword, signInWithGoogle, isLoggedIn, handleCreateNewListing, listAllBooks, getImageURL }}>{props.children}</FirebaseContext.Provider>
     )
 }
