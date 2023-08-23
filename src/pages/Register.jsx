@@ -23,7 +23,9 @@ const Register = () => {
     }, [firebase, navigate])
 
     return (
-        <div className="border-2 border-black h-[100vh] flex justify-center items-center">
+        <>
+        <div className="h-[100vh] flex flex-col justify-center items-center">
+        <h1 className="text-2xl font-bold underline capitalize text-center">Sign Up</h1>
             <div className="w-full max-w-xs">
                 <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" onSubmit={handleSubmit}>
                     <div className="mb-4">
@@ -50,6 +52,7 @@ const Register = () => {
                 </p>
             </div>
         </div>
+        </>
     )
 }
 

@@ -57,7 +57,6 @@ export const FirebaseProvider = (props) => {
         const uploadResult = await uploadBytes(imageRef, cover);
         return await addDoc(collection(firestore, 'books'), {
             name,
-            desc,
             isbn,
             price,
             imageURL: uploadResult.ref.fullPath,
